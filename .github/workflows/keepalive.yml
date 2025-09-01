@@ -2,7 +2,7 @@ name: Auto Load Panel
 
 on:
   schedule:
-    - cron: "*/3 * * * *"   # هر 3 دقیقه
+    - cron: "* * * * *"   # هر 1 دقیقه
   workflow_dispatch:
 
 jobs:
@@ -16,26 +16,18 @@ jobs:
           npm init -y
           npm install puppeteer
 
-      - name: Load panel twice (90s apart)
+      - name: Load panel
         run: |
           node - <<'EOF'
           const puppeteer = require('puppeteer');
           (async () => {
-            async function openPanel() {
-              const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
-              const page = await browser.newPage();
-              await page.goto('https://hypersignal-production.up.railway.app/signals', {waitUntil: 'networkidle2'});
-              console.log("✅ Panel loaded at", new Date().toISOString());
-              await browser.close();
-            }
-
-            // بار اول
-            await openPanel();
-
-            // صبر 90 ثانیه
-            await new Promise(r => setTimeout(r, 90 * 1000));
-
-            // بار دوم
-            await openPanel();
+            const browser = await puppeteer.launch({
+              headless: true,
+              args: ['--no-sandbox']
+            });
+            const page = await browser.newPage();
+            await page.goto('https://hypersignal-production.up.railway.app/signals', {waitUntil: 'networkidle2'});
+            console.log("✅ Panel loaded at", new Date().toISOString());
+            await browser.close();
           })();
           EOF
