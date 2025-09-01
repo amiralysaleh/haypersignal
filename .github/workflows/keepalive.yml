@@ -1,13 +1,41 @@
-name: Keep Render Alive
+name: Auto Load Panel
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # هر ۱۰ دقیقه یک بار
+    - cron: "*/3 * * * *"   # هر 3 دقیقه
   workflow_dispatch:
 
 jobs:
-  ping:
+  load-panel:
     runs-on: ubuntu-latest
     steps:
-      - name: Curl Render App
-        run: curl -s https://hypersignal-si7e.onrender.com > /dev/null
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgbm-dev
+          npm init -y
+          npm install puppeteer
+
+      - name: Load panel twice (90s apart)
+        run: |
+          node - <<'EOF'
+          const puppeteer = require('puppeteer');
+          (async () => {
+            async function openPanel() {
+              const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
+              const page = await browser.newPage();
+              await page.goto('https://hypersignal-production.up.railway.app/signals', {waitUntil: 'networkidle2'});
+              console.log("✅ Panel loaded at", new Date().toISOString());
+              await browser.close();
+            }
+
+            // بار اول
+            await openPanel();
+
+            // صبر 90 ثانیه
+            await new Promise(r => setTimeout(r, 90 * 1000));
+
+            // بار دوم
+            await openPanel();
+          })();
+          EOF
