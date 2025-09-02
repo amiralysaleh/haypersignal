@@ -2,7 +2,7 @@ name: Auto Load Panel
 
 on:
   schedule:
-    - cron: "* * * * *"   # هر 1 دقیقه
+    - cron: "*/1 * * * *"   # هر 1 دقیقه
   workflow_dispatch:      # اجرای دستی
 
 jobs:
