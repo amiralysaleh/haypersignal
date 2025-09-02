@@ -2,41 +2,41 @@ name: Auto Load Panel
 
 on:
   schedule:
-    - cron: "*/2 * * * *"
-  workflow_dispatch:
+    - cron: "*/2 * * * *"   # هر 1 دقیقه
+  workflow_dispatch:      # اجرای دستی
 
 jobs:
   load-panel:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
+      - name: Check timestamp
+        run: echo "🚀 Workflow triggered at $(date)"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          
+
+      - name: Install Puppeteer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgbm-dev
+          npm init -y
+          npm install puppeteer
+
       - name: Load panel
         run: |
-          npx puppeteer-core@latest --version
-          node -e "
+          node - <<'EOF'
           const puppeteer = require('puppeteer');
           (async () => {
-            try {
-              const browser = await puppeteer.launch({
-                headless: 'new',
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
-              });
-              const page = await browser.newPage();
-              console.log('🚀 Loading panel...');
-              await page.goto('https://hypersignal-production.up.railway.app/signals');
-              await page.waitForTimeout(10000);
-              console.log('✅ Panel loaded successfully at', new Date().toISOString());
-              await browser.close();
-            } catch (error) {
-              console.error('❌ Error:', error.message);
-              process.exit(1);
-            }
+            const browser = await puppeteer.launch({
+              headless: true,
+              args: ['--no-sandbox']
+            });
+            const page = await browser.newPage();
+            await page.goto('https://hypersignal-production.up.railway.app/signals', {waitUntil: 'networkidle2'});
+            await new Promise(resolve => setTimeout(resolve, 5000)); // صبر اضافه برای لود کامل
+            console.log("✅ Panel loaded at", new Date().toISOString());
+            await browser.close();
           })();
-          "
+          EOF
