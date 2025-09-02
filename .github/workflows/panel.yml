@@ -35,7 +35,7 @@ jobs:
             });
             const page = await browser.newPage();
             await page.goto('https://hypersignal-production.up.railway.app/signals', {waitUntil: 'networkidle2'});
-            await new Promise(resolve => setTimeout(resolve, 5000)); // صبر اضافه برای لود کامل
+            await new Promise(resolve => setTimeout(resolve, 10000)); // صبر اضافه برای لود کامل
             console.log("✅ Panel loaded at", new Date().toISOString());
             await browser.close();
           })();
